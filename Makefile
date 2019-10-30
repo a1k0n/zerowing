@@ -6,14 +6,15 @@ CFILES = main.c
 
 all:: main.elf
 
-main.elf:
+main.elf: $(CFILES)
 	$(CC) $(CFLAGS) --out-fmt-elf -o $@ $(CFILES)
 
 flash: main.elf
 	openocd -f interface/stlink.cfg -f target/stm8s003.cfg -c "program main.elf verify reset exit"
 
 reformat:
-	clang-format -style=Google -i $(CFILES)
+	# requires very recent clang-format for AlignConsecutiveMacros
+	clang-format -style="{BasedOnStyle: Google, AlignConsecutiveAssignments: true, AlignConsecutiveDeclarations: true, AlignConsecutiveMacros: true}" -i $(CFILES)
 
 clean:
 	rm -f main.asm main.cdb main.elf main.lk main.lst main.map main.rel main.rst main.sym
