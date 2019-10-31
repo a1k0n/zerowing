@@ -14,6 +14,9 @@ flash: main.hex
 	# openocd -f interface/stlink.cfg -f target/stm8s003.cfg -c "program main.elf verify reset exit"
 	stm8flash -c stlinkv2 -p stm8s003f3 -w main.hex
 
+flashopt:
+	stm8flash -c stlinkv2 -p stm8s003f3 -s opt -w opt.hex
+
 reformat:
 	# requires very recent clang-format for AlignConsecutiveMacros
 	clang-format -style="{BasedOnStyle: Google, AlignConsecutiveAssignments: true, AlignConsecutiveDeclarations: true, AlignConsecutiveMacros: true}" -i $(CFILES)
