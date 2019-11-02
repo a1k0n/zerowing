@@ -8,24 +8,53 @@
 
 #define PWM_PERIOD 3000
 
-static inline void set_hbridge_brake(uint16_t period) {
-  PB_ODR = 0x30;  // HUR high (off) HUL high (off)
+static void deadtime_delay() {
+  // delay 50us, each loop is 3 instrs at 2MHz, minus the overhead of the call itself
+  volatile uint8_t i = 33 - 3;
+  while(--i);
+}
+
+// FIXME!
+// need to wait 50us after changing directions before setting nonzero PWM period
+static void set_hbridge_brake(uint16_t period) {
+  if (PB_ODR != 0x30) {
+    TIM1_CCR1H = 0;  // HLR (M+)
+    TIM1_CCR1L = 0;
+    TIM1_CCR2H = 0;  // HLL (M-)
+    TIM1_CCR2L = 0;
+    PB_ODR = 0x30;  // HUR high (off) HUL high (off)
+    deadtime_delay();
+  }
   TIM1_CCR1H = period >> 8;  // HLR (M+)
   TIM1_CCR1L = period & 255;
   TIM1_CCR2H = PWM_PERIOD >> 8;  // HLL (M-)
   TIM1_CCR2L = PWM_PERIOD & 255;
 }
 
-static inline void set_hbridge_fwd(uint16_t period) {
-  PB_ODR = 0x10;  // HUR low (on) HUL high (off)
+static void set_hbridge_fwd(uint16_t period) {
+  if (PB_ODR != 0x10) {
+    TIM1_CCR1H = 0;  // HLR (M+)
+    TIM1_CCR1L = 0;
+    TIM1_CCR2H = 0;  // HLL (M-)
+    TIM1_CCR2L = 0;
+    PB_ODR = 0x10;  // HUR low (on) HUL high (off)
+    deadtime_delay();
+  }
   TIM1_CCR1H = 0;  // HLR (M+)
   TIM1_CCR1L = 0;
   TIM1_CCR2H = period >> 8;  // HLL (M-)
   TIM1_CCR2L = period & 255;
 }
 
-static inline void set_hbridge_rev(uint16_t period) {
-  PB_ODR = 0x20;  // HUR high (off) HUL low (on)
+static void set_hbridge_rev(uint16_t period) {
+  if (PB_ODR != 0x20) {
+    TIM1_CCR1H = 0;  // HLR (M+)
+    TIM1_CCR1L = 0;
+    TIM1_CCR2H = 0;  // HLL (M-)
+    TIM1_CCR2L = 0;
+    PB_ODR = 0x20;  // HUR high (off) HUL low (on)
+    deadtime_delay();
+  }
   TIM1_CCR1H = period >> 8;  // HLR (M+)
   TIM1_CCR1L = period & 255;
   TIM1_CCR2H = 0;  // HLL (M-)
