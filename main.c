@@ -63,13 +63,13 @@ static void set_hbridge_rev(uint16_t period) {
 }
 
 static void set_ch1_period(uint16_t us) {
-  TIM1_CCR1H = (us<<1)>>8;
-  TIM1_CCR1L = (us<<1) & 255;
+  TIM2_CCR1H = (us<<1) >> 8;
+  TIM2_CCR1L = (us<<1) & 255;
 }
 
 static void set_ch2_period(uint16_t us) {
-  TIM1_CCR2H = (us<<1)>>8;
-  TIM1_CCR2L = (us<<1) & 255;
+  TIM2_CCR3H = (us<<1) >> 8;
+  TIM2_CCR3L = (us<<1) & 255;
 }
 
 void TIM1_ovf(void) __interrupt(TIM1_OVR_UIF_IRQ) {
@@ -112,22 +112,23 @@ int main() {
   PC_CR1 |= 0xc0;
   PC_ODR = 0x00;
 
-  PC_DDR |= 0x10;  // SRV output
-  PC_CR1 |= 0x10;
+  // PA_DDR |= 0x08;  // CH2 output
+  // PD_DDR |= 0x10;  // CH1 (servo) output
 
   TIM1_ARRH = (PWM_PERIOD-1) >> 8;
   TIM1_ARRL = (PWM_PERIOD-1) & 255;
 
-  TIM1_CCER1 = 0x11;  // Enable output compare
   TIM1_CCMR1 = 0x60;  // PWM mode
   TIM1_CCMR2 = 0x60;  // PWM mode
+  TIM1_CCER1 = 0x11;  // Enable output compare 1 and 2
 
   TIM2_ARRH = (SERVO_PWM_PERIOD-1) >> 8;
   TIM2_ARRL = (SERVO_PWM_PERIOD-1) & 255;
 
-  TIM2_CCER1 = 0x11;  // Enable output compare
   TIM2_CCMR1 = 0x60;  // PWM mode
-  TIM2_CCMR2 = 0x60;  // PWM mode
+  TIM2_CCMR3 = 0x60;  // PWM mode
+  TIM2_CCER1 = 0x01;  // Enable output compare 1
+  TIM2_CCER2 = 0x01;  // Enable output compare 3
 
   set_hbridge_brake(0);
 
@@ -138,7 +139,7 @@ int main() {
   TIM1_IER |= TIM_IER_UIE;  // Enable Update Interrupt
   TIM1_BKR |= 0x80;  // main output enable
 
-  TIM2_CR1 = 0x01;  // Enable TIM1
+  TIM2_CR1 = 0x01;  // Enable TIM2
   TIM2_IER |= TIM_IER_UIE;  // Enable Update Interrupt
 
   /* Prescaler = 128 */
@@ -151,6 +152,7 @@ int main() {
   UART1_BRR2 = 0x01;  // 115200 baud ~= 2MHz/17
   UART1_BRR1 = 0x01;
   UART1_CR2 = UART_CR2_RIEN | UART_CR2_TEN | UART_CR2_REN;
+  UART1_CR3 = 0;
 
   rim();
   uint8_t i = 0;

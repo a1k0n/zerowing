@@ -49,6 +49,8 @@
 #define PD_CR1 *(volatile unsigned char *)0x5012
 #define PD_CR2 *(volatile unsigned char *)0x5013
 
+#define BEEP_CSR *(volatile unsigned char *)0x50f3
+
 /* UART */
 #define UART1_SR *(volatile unsigned char *)0x5230
 #define UART1_DR *(volatile unsigned char *)0x5231
