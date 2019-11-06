@@ -1,6 +1,6 @@
 OBJS = main.o
 CC = sdcc
-CFLAGS = -lstm8 -mstm8 --std-sdcc11
+CFLAGS = -lstm8 -mstm8 --std-sdcc11 --opt-code-speed
 CFILES = main.c
 
 
