@@ -7,6 +7,7 @@
 #define GREEN_LED 2
 
 #define PWM_PERIOD 3000
+#define SERVO_PWM_PERIOD 20000
 
 static void deadtime_delay() {
   // delay 50us, each loop is 3 instrs at 2MHz, minus the overhead of the call itself
@@ -61,9 +62,24 @@ static void set_hbridge_rev(uint16_t period) {
   TIM1_CCR2L = 0;
 }
 
+static void set_ch1_period(uint16_t us) {
+  TIM1_CCR1H = (us<<1)>>8;
+  TIM1_CCR1L = (us<<1) & 255;
+}
+
+static void set_ch2_period(uint16_t us) {
+  TIM1_CCR2H = (us<<1)>>8;
+  TIM1_CCR2L = (us<<1) & 255;
+}
+
 void TIM1_ovf(void) __interrupt(TIM1_OVR_UIF_IRQ) {
-  PA_ODR ^= (1 << BLUE_LED);
   TIM1_SR1 &= ~TIM_SR1_UIF;
+}
+
+void TIM2_ovf(void) __interrupt(TIM2_OVR_UIF_IRQ) {
+  // 100Hz timer
+  PA_ODR ^= (1 << BLUE_LED);
+  TIM2_SR1 &= ~TIM_SR1_UIF;
 }
 
 void TIM4_ovf(void) __interrupt(TIM4_OVR_UIF_IRQ) {
@@ -96,6 +112,9 @@ int main() {
   PC_CR1 |= 0xc0;
   PC_ODR = 0x00;
 
+  PC_DDR |= 0x10;  // SRV output
+  PC_CR1 |= 0x10;
+
   TIM1_ARRH = (PWM_PERIOD-1) >> 8;
   TIM1_ARRL = (PWM_PERIOD-1) & 255;
 
@@ -103,11 +122,24 @@ int main() {
   TIM1_CCMR1 = 0x60;  // PWM mode
   TIM1_CCMR2 = 0x60;  // PWM mode
 
+  TIM2_ARRH = (SERVO_PWM_PERIOD-1) >> 8;
+  TIM2_ARRL = (SERVO_PWM_PERIOD-1) & 255;
+
+  TIM2_CCER1 = 0x11;  // Enable output compare
+  TIM2_CCMR1 = 0x60;  // PWM mode
+  TIM2_CCMR2 = 0x60;  // PWM mode
+
   set_hbridge_brake(0);
+
+  set_ch1_period(1500);
+  set_ch2_period(1500);
 
   TIM1_CR1 = 0x01;  // Enable TIM1
   TIM1_IER |= TIM_IER_UIE;  // Enable Update Interrupt
   TIM1_BKR |= 0x80;  // main output enable
+
+  TIM2_CR1 = 0x01;  // Enable TIM1
+  TIM2_IER |= TIM_IER_UIE;  // Enable Update Interrupt
 
   /* Prescaler = 128 */
   TIM4_PSCR = 0b00000111;
