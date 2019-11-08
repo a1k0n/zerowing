@@ -297,6 +297,7 @@
 
 /* Interrupt numbers */
 #define TIM1_OVR_UIF_IRQ 11
+#define TIM1_UEV_IRQ 12
 #define TIM2_OVR_UIF_IRQ 13
 #define TIM3_OVR_UIF_IRQ 15
 #define UART1_TX_IRQ 17
