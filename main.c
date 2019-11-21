@@ -15,7 +15,7 @@
 static void deadtime_delay() {
   // delay 200us, each loop is 3 instrs at 2MHz, minus the overhead of the call
   // itself
-  volatile uint16_t i = (F_CPU*200/1e6)/7 - 2;
+  volatile uint16_t i = (F_CPU * 200 / 1e6) / 7 - 2;
   while (--i)
     ;
 }
@@ -110,7 +110,8 @@ void TIM1_ovf(void) __interrupt(TIM1_OVR_UIF_IRQ) {
       PA_ODR &= ~(1 << BLUE_LED);
       ADC_CSR &= ~ADC_CSR_EOCIE;  // disable conversion interrupt
       run_state = 0;
-      while (!(UART1_SR & UART_SR_TC));
+      while (!(UART1_SR & UART_SR_TC))
+        ;
       UART1_DR = 0xfe;  // frame end
       break;
   }
@@ -125,7 +126,8 @@ void TIM1_uev(void) __interrupt(TIM1_UEV_IRQ) {
       PA_ODR |= (1 << BLUE_LED);
       ADC_CSR |= ADC_CSR_EOCIE;  // enable conversion interrupt
       ADC_CSR &= ~ADC_CSR_EOC;
-      while (!(UART1_SR & UART_SR_TC));
+      while (!(UART1_SR & UART_SR_TC))
+        ;
       UART1_DR = 0xff;  // frame start
       break;
   }
@@ -208,13 +210,12 @@ int main() {
   set_ch1_period(1500);
   set_ch2_period(1500);
 
-  TIM1_CR1 = 0x01;          // Enable TIM1
+  TIM1_CR1 = 0x01;                          // Enable TIM1
   TIM1_IER |= TIM_IER_UIE | TIM_IER_CC1IE;  // Enable Update, compare 2 event
-  TIM1_BKR |= 0x80;         // main output enable
+  TIM1_BKR |= 0x80;                         // main output enable
 
   TIM2_CR1 = 0x01;          // Enable TIM2
   TIM2_IER |= TIM_IER_UIE;  // Enable Update Interrupt
-
 
 #if 0
   // Prescaler = 128
@@ -231,7 +232,7 @@ int main() {
   UART1_CR3  = 0;
 
   ADC_CSR = 2;  // read from AIN2, the back-EMF feedback, and enable interrupt
-  ADC_CR1 = 0x73;  // fADC = fMASTER/18 (888kHz, 63.5kHz samplerate)
+  ADC_CR1 = 0x73;           // fADC = fMASTER/18 (888kHz, 63.5kHz samplerate)
   ADC_CR1 |= ADC_CR1_ADON;  // start continuous conversion
   // want ADC interrupt
 

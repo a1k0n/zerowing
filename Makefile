@@ -15,6 +15,7 @@ flash: main.hex
 	stm8flash -c stlinkv2 -p stm8s003f3 -w main.hex
 
 flashopt:
+	# flash the option bytes, which sets the AFR* peripheral configuration bits
 	stm8flash -c stlinkv2 -p stm8s003f3 -s opt -w opt.hex
 
 reformat:
